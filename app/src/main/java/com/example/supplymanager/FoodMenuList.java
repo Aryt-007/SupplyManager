@@ -158,7 +158,6 @@ public class FoodMenuList {
                     // Обновляем оба списка сразу (и главный, и в меню)
                     activity.refreshData();
                     refreshData();
-
                     return true;
                 } else if (itemId == R.id.delete) {
                     database.mainDAO().delete(selectedNotes);
@@ -166,7 +165,6 @@ public class FoodMenuList {
                     // Обновляем оба списка сразу (и главный, и в меню)
                     activity.refreshData();
                     refreshData();
-
                     return true;
                 }
                 return false;
