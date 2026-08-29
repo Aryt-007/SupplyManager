@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_notes_taker"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:orientation="vertical"
+    tools:context=".NotesTakerActivity">
+
+    <!-- Топбар с кнопками "Отмена" и "Сохранить" -->
+    <Toolbar
+        android:id="@+id/toolBar_notes"
+        android:title="@string/app_name"
+        android:titleTextColor="@color/white"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/imageView_save"
+                android:layout_alignParentEnd="true"
+                android:src="@drawable/save"
+                android:padding="6dp"
+                android:background="@android:color/transparent"
+                android:layout_width="?attr/actionBarSize"
+                android:layout_height="?attr/actionBarSize"/>
+
+            <ImageView
+                android:id="@+id/imageView_cancellation"
+                android:src="@drawable/cancellation"
+                android:padding="6dp"
+                android:background="@android:color/transparent"
+                android:layout_width="?attr/actionBarSize"
+                android:layout_height="?attr/actionBarSize"/>
+        </RelativeLayout>
+    </Toolbar>
+
+    <!-- Заголовок -->
+    <EditText
+        android:id="@+id/editText_tittle"
+        android:inputType="textCapSentences"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Тема: "
+        android:textColorHint="@color/white"
+        android:padding="10dp"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:textColor="@color/white"
+        android:singleLine="true"
+        />
+
+    <!-- Текст -->
+    <EditText
+        android:id="@+id/editText_notes"
+        android:inputType="textCapSentences"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Текст: "
+        android:textColorHint="@color/white"
+        android:padding="8dp"
+        android:textStyle="normal"
+        android:textSize="18sp"
+        android:textColor="@color/white"
+        />
+
+    <!-- ЗАМЕНА TableLayout на FrameLayout -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageButton
+            android:id="@+id/btn_add"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="30dp"
+            android:layout_marginBottom="30dp"
+
+            android:src="@drawable/btn_add"
+            android:background="@drawable/bg_circle_black"
+            android:scaleType="centerInside"
+            />
+    </FrameLayout>
+
+</LinearLayout>

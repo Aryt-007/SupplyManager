@@ -1,0 +1,67 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.SupplyManager" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Применяем стиль PopupMenu -->
+        <item name="popupMenuStyle">@style/PopupMenuStyle</item>
+        <item name="android:popupMenuStyle">@style/PopupMenuStyle</item>
+
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/black</item>
+        <item name="colorPrimaryVariant">@color/background_notes</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/red</item>
+        <item name="colorSecondaryVariant">@color/blue</item>
+        <item name="colorOnSecondary">@color/brown</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+    </style>
+    <style name="CustomSearchViewTheme" parent="Theme.AppCompat.Light">
+        <item name="android:textColorPrimary">@color/black</item>
+        <!-- Цвет текста, который вы вводите -->
+        <item name="android:textColorHint">@color/gray</item>
+        <!-- Цвет текста-подсказки (hint) -->
+    </style>
+    <style name="Theme.SupplyManager" parent="Base.Theme.SupplyManager" />
+
+    <style name="Base.Theme.SupplyManager.NoActionBar" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Применяем стиль PopupMenu -->
+        <item name="popupMenuStyle">@style/PopupMenuStyle</item>
+        <item name="android:popupMenuStyle">@style/PopupMenuStyle</item>
+
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/black</item>
+        <item name="colorPrimaryVariant">@color/background_notes</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/red</item>
+        <item name="colorSecondaryVariant">@color/blue</item>
+        <item name="colorOnSecondary">@color/brown</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+    </style>
+
+    <style name="MyMenuItemStyle" parent="Widget.AppCompat.TextView">
+        <item name="android:textColor">#000000</item>
+    </style>
+
+    <style name="CustomPopupTheme" parent="ThemeOverlay.AppCompat.Light">
+        <!-- Делаем текст черным -->
+        <item name="android:textColor">#000000</item>
+        <item name="android:textColorPrimary">#000000</item>
+        <item name="android:textColorSecondary">#000000</item>
+
+        <!-- Опционально: делаем фон меню белым, чтобы текст был виден -->
+        <item name="android:colorBackground">#FFFFFF</item>
+    </style>
+
+    <style name="menu_text_style" parent="Widget.AppCompat.Light.PopupMenu.Overflow">
+        <item name="android:textSize">50sp</item>
+        <item name="android:textColor">@color/gold</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+    </style>
+
+</resources>
