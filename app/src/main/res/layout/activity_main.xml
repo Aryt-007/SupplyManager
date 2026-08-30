@@ -26,11 +26,12 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_margin="16dp"
+
             android:src="@drawable/food_list"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:scaleType="fitCenter"
             android:layout_alignParentStart="true"
-            android:contentDescription="Открыть меню" />
+            />
 
         <SearchView
             android:id="@+id/searchView_home"

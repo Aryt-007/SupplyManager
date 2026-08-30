@@ -71,22 +71,130 @@
         />
 
     <!-- ЗАМЕНА TableLayout на FrameLayout -->
-    <FrameLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            >
+            <TableRow>
+                <TextView
+                    android:id="@+id/name_food"
+                    android:layout_width="250dp"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+
+                    android:background="@color/black"
+                    android:textColor="@color/white"
+
+                    android:gravity="center_horizontal"
+                    android:textStyle="bold"
+
+                    android:text="Название" />
+
+                <TextView
+                    android:id="@+id/count_food"
+                    android:layout_width="120dp"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+
+                    android:background="@color/black"
+                    android:textColor="@color/white"
+
+                    android:gravity="center_horizontal"
+                    android:textStyle="bold"
+
+                    android:text="Количетсво"
+                    />
+
+                <TextView
+                    android:id="@+id/btn_up_down"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+
+                    android:background="@color/black"
+                    android:textColor="@color/white"
+
+                    android:gravity="center_horizontal"
+                    android:textStyle="bold"
+
+                    />
+            </TableRow>
+            <TableRow>
+                <EditText
+                    android:id="@+id/text_tittle"
+                    android:inputType="textCapSentences"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:textColorHint="@color/white"
+                    android:textStyle="normal"
+                    android:textSize="18sp"
+
+                    android:padding="8dp"
+
+                    android:textColor="@color/white"
+                />
+                <EditText
+                    android:id="@+id/count_tittle"
+                    android:inputType="number"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:textColorHint="@color/white"
+                    android:textStyle="normal"
+                    android:textSize="18sp"
+
+                    android:padding="8dp"
+
+                    android:textColor="@color/white"
+                />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    >
+                    <ImageButton
+                        android:id="@+id/btn_up"
+
+                        android:layout_width="40dp"
+                        android:layout_height="20dp"
+
+                        android:src="@drawable/btn_up"
+                        android:scaleType="centerInside"
+                        android:background="@drawable/bg_circle_black"
+                        />
+                    <ImageButton
+                        android:id="@+id/btn_down"
+
+                        android:layout_width="40dp"
+                        android:layout_height="20dp"
+
+                        android:src="@drawable/btn_down"
+                        android:scaleType="centerInside"
+                        android:background="@drawable/bg_circle_black"
+                        />
+                </LinearLayout>
+
+            </TableRow>
+        </TableLayout>
 
         <ImageButton
             android:id="@+id/btn_add"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:layout_gravity="bottom|end"
-            android:layout_marginEnd="30dp"
-            android:layout_marginBottom="30dp"
+            android:layout_marginHorizontal="300dp"
+            android:layout_marginVertical="450dp"
 
             android:src="@drawable/btn_add"
             android:background="@drawable/bg_circle_black"
             android:scaleType="centerInside"
             />
-    </FrameLayout>
+    </RelativeLayout>
 
 </LinearLayout>
