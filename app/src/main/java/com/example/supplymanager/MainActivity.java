@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         settings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent_settings = new Intent(MainActivity.this, Settings.class);
+                Intent intent_settings = new Intent(MainActivity.this, MainSettings.class);
                 startActivity(intent_settings);
             }
         });

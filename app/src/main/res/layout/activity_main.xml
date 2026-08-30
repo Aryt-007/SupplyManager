@@ -93,7 +93,7 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        app:headerLayout="@layout/header"
+        app:headerLayout="@layout/food_menu_list"
 
         android:background="@color/black"
         app:itemTextColor="#FFFFFF"
