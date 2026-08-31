@@ -5,6 +5,7 @@
     android:layout_height="100dp"
     android:orientation="vertical">
     <EditText
+        android:id="@+id/number_add"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:inputType="number"
@@ -40,7 +41,6 @@
 
             android:layout_alignParentEnd="true"
             />
-
     </RelativeLayout>
 
 </LinearLayout>

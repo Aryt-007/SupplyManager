@@ -35,6 +35,8 @@ dependencies {
 
     implementation(libs.room.runtime)
     implementation(libs.recyclerview)
+    implementation(libs.firebase.crashlytics.buildtools)
+    implementation("com.google.code.gson:gson:2.11.0")
     annotationProcessor(libs.room.compiler)
     implementation(libs.appcompat)
     implementation(libs.material)

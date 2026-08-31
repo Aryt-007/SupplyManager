@@ -5,11 +5,19 @@ import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity(tableName = "notes")
 public class Notes implements Serializable { // Таблица для хранения данных
     @PrimaryKey(autoGenerate = true) // Чтобы ключ автоматически присваивался PrimaryKey
     int ID = 0; // Первичный ключ в таблице
+
+    @ColumnInfo(name = "text_title")
+    String text_title = ""; // Название предмета в таблице записи
+
+    @ColumnInfo(name = "count_title")
+    String count_title = ""; // Количество предмета в таблице записи
 
     @ColumnInfo(name = "title")
     String title = ""; // Название записи
@@ -30,6 +38,22 @@ public class Notes implements Serializable { // Таблица для хране
 
     public void setID(int ID) {
         this.ID = ID;
+    }
+
+    public String getText_title() {
+        return text_title;
+    }
+
+    public void setText_title(String text_title) {
+        this.text_title = text_title;
+    }
+
+    public String getCount_title() {
+        return count_title;
+    }
+
+    public void setCount_title(String count_title) {
+        this.count_title = count_title;
     }
 
     public String getTitle() {

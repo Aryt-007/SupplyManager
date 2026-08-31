@@ -101,7 +101,7 @@ public class FoodMenuList {
         } else if (requestCode == 102) {
             if (resultCode == Activity.RESULT_OK) {
                 Notes new_notes = (Notes) data.getSerializableExtra("Запись");
-                database.mainDAO().update(new_notes.getID(), new_notes.getTitle(), new_notes.getNotes());
+                database.mainDAO().update(new_notes.getID(), new_notes.getTitle(), new_notes.getNotes(), new_notes.getText_title(), new_notes.getCount_title());
                 notes.clear();
                 notes.addAll(database.mainDAO().getAll());
                 menuAdapter.notifyDataSetChanged();

@@ -20,13 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class NotesListAdapter extends RecyclerView.Adapter <NotesViewHolder>{
+public class NotesListAdapterMain extends RecyclerView.Adapter <NotesViewHolderMain>{
 
     Context context;
     List <Notes> list;
     NotesClickListener listener;
 
-    public NotesListAdapter(List<Notes> list, NotesClickListener listener, Context context) {
+    public NotesListAdapterMain(List<Notes> list, NotesClickListener listener, Context context) {
         this.list = list;
         this.listener = listener;
         this.context = context;
@@ -34,12 +34,12 @@ public class NotesListAdapter extends RecyclerView.Adapter <NotesViewHolder>{
 
     @NonNull
     @Override
-    public NotesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new NotesViewHolder(LayoutInflater.from(context).inflate(R.layout.main_notes_list, parent, false));
+    public NotesViewHolderMain onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        return new NotesViewHolderMain(LayoutInflater.from(context).inflate(R.layout.main_notes_list, parent, false));
     }
 
     @Override
-    public void onBindViewHolder(@NonNull NotesViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull NotesViewHolderMain holder, int position) {
         holder.textView_title.setText(list.get(position).getTitle());
         holder.textView_title.setSelected(true);
 
@@ -95,20 +95,25 @@ public class NotesListAdapter extends RecyclerView.Adapter <NotesViewHolder>{
     }
 }
 
-class NotesViewHolder extends RecyclerView.ViewHolder {
+class NotesViewHolderMain extends RecyclerView.ViewHolder {
 
     CardView notes_container;
     TextView textView_title, textView_notes, textView_date;
     ImageView imageView_pin;
 
 
-    public NotesViewHolder(@NonNull View itemView) {
+
+    public NotesViewHolderMain(@NonNull View itemView) {
         super(itemView);
         notes_container = itemView.findViewById(R.id.menu_list_container);
+
         textView_title = itemView.findViewById(R.id.textView_title);
         textView_notes = itemView.findViewById(R.id.textView_notes);
         textView_date = itemView.findViewById(R.id.textView_date);
+
+
         imageView_pin = itemView.findViewById(R.id.imageView_pin);
+
 
     }
 }

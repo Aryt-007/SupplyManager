@@ -25,7 +25,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
-import com.example.supplymanager.Adapter.NotesListAdapter;
+import com.example.supplymanager.Adapter.NotesListAdapterMain;
 import com.example.supplymanager.DataBase.RoomDB;
 import com.example.supplymanager.Models.Notes;
 
@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
     RecyclerView recyclerView;
     ImageButton fab_add;
-    NotesListAdapter notesListAdapter;
+    NotesListAdapterMain notesListAdapterMain;
     RoomDB database;
     List <Notes> notes = new ArrayList<>();
     SearchView searchView_home;
@@ -125,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 filteredList.add(singleNote);
             }
         }
-        notesListAdapter.filterList(filteredList);
+        notesListAdapterMain.filterList(filteredList);
     }
 
 
@@ -140,33 +140,33 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 database.mainDAO().insert(new_notes);
                 notes.clear();
                 notes.addAll(database.mainDAO().getAll());
-                notesListAdapter.notifyDataSetChanged();
+                notesListAdapterMain.notifyDataSetChanged();
                 foodMenuList.refreshData();
             }
         } else if (requestCode == 102) {
             if (resultCode == Activity.RESULT_OK) {
                 Notes new_notes = (Notes) data.getSerializableExtra("Запись");
-                database.mainDAO().update(new_notes.getID(), new_notes.getTitle(), new_notes.getNotes());
+                // ⚠️ Продолжайте с этим:
+                database.mainDAO().update(new_notes.getID(), new_notes.getTitle(), new_notes.getNotes(), new_notes.getText_title(), new_notes.getCount_title());
                 notes.clear();
                 notes.addAll(database.mainDAO().getAll());
-                notesListAdapter.notifyDataSetChanged();
+                notesListAdapterMain.notifyDataSetChanged();
                 foodMenuList.refreshData();
             }
         }
-
     }
 
     // Обновление заметок
     private void updateRecycle(List<Notes> notes) { // В onCreate
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, LinearLayoutManager.VERTICAL));
-        notesListAdapter = new NotesListAdapter(notes, notesClickListener, MainActivity.this);
-        recyclerView.setAdapter(notesListAdapter);
+        notesListAdapterMain = new NotesListAdapterMain(notes, notesClickListener, MainActivity.this);
+        recyclerView.setAdapter(notesListAdapterMain);
     }
     public void refreshData() { // В остальных местах
         notes.clear();
         notes.addAll(database.mainDAO().getAll());
-        notesListAdapter.notifyDataSetChanged();
+        notesListAdapterMain.notifyDataSetChanged();
     }
 
     private final NotesClickListener notesClickListener = new NotesClickListener() {
