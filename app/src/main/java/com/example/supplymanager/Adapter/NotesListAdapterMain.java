@@ -2,10 +2,13 @@ package com.example.supplymanager.Adapter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -43,7 +46,7 @@ public class NotesListAdapterMain extends RecyclerView.Adapter <NotesViewHolderM
         holder.textView_title.setText(list.get(position).getTitle());
         holder.textView_title.setSelected(true);
 
-        holder.textView_notes.setText(list.get(position).getNotes());
+        displayTableData(holder.textView_notes, list.get(position));
 
         holder.textView_date.setText(list.get(position).getDate());
         holder.textView_date.setSelected(true);
@@ -52,6 +55,18 @@ public class NotesListAdapterMain extends RecyclerView.Adapter <NotesViewHolderM
             holder.imageView_pin.setImageResource(R.drawable.pinned);
         } else {
             holder.imageView_pin.setImageResource(0);
+        }
+
+        // Убираем лишнее пространство - устанавливаем высоту по содержимому
+        holder.textView_notes.measure(
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        );
+
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) holder.textView_notes.getLayoutParams();
+        if (params != null) {
+            params.height = holder.textView_notes.getMeasuredHeight();
+            holder.textView_notes.setLayoutParams(params);
         }
 
         // Смена цвета заднего фона в заметках
@@ -74,6 +89,147 @@ public class NotesListAdapterMain extends RecyclerView.Adapter <NotesViewHolderM
         });
     }
 
+    // Метод для отображения данных таблицы
+    private void displayTableData(LinearLayout container, Notes note) {
+        // Очищаем контейнер перед добавлением
+        container.removeAllViews();
+
+        String textTitles = note.getText_title();
+        String countTitles = note.getCount_title();
+
+        // Если есть данные таблицы
+        if (textTitles != null && !textTitles.isEmpty() && countTitles != null && !countTitles.isEmpty()) {
+            String[] textTitleArray = textTitles.split("\\|");
+            String[] countTitleArray = countTitles.split("\\|");
+
+            int maxLength = Math.min(textTitleArray.length, countTitleArray.length);
+
+            // Ограничиваем до 3 строк
+            int maxDisplayRows = Math.min(maxLength, 3);
+
+            // Добавляем заголовок таблицы
+            LinearLayout headerRow = new LinearLayout(context);
+            headerRow.setOrientation(LinearLayout.HORIZONTAL);
+            LinearLayout.LayoutParams headerParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            headerRow.setLayoutParams(headerParams);
+
+            TextView headerName = new TextView(context);
+            headerName.setText("Название");
+            headerName.setTextColor(Color.BLACK);
+            headerName.setTextSize(14);
+            headerName.setTypeface(null, android.graphics.Typeface.BOLD);
+            headerName.setGravity(Gravity.START);
+            headerName.setPadding(8, 4, 8, 4);
+            headerName.setLayoutParams(new LinearLayout.LayoutParams(
+                    0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1f
+            ));
+
+            TextView headerCount = new TextView(context);
+            headerCount.setText("Кол-во");
+            headerCount.setTextColor(Color.BLACK);
+            headerCount.setTextSize(14);
+            headerCount.setTypeface(null, android.graphics.Typeface.BOLD);
+            headerCount.setGravity(Gravity.CENTER);
+            headerCount.setPadding(8, 4, 8, 4);
+            headerCount.setLayoutParams(new LinearLayout.LayoutParams(
+                    0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    0.5f
+            ));
+
+            headerRow.addView(headerName);
+            headerRow.addView(headerCount);
+            container.addView(headerRow);
+
+            // Добавляем разделитель
+            View divider = new View(context);
+            divider.setBackgroundColor(Color.LTGRAY);
+            LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    1
+            );
+            divider.setLayoutParams(dividerParams);
+            container.addView(divider);
+
+            // Добавляем строки данных (максимум 3)
+            for (int i = 0; i < maxDisplayRows; i++) {
+                LinearLayout dataRow = new LinearLayout(context);
+                dataRow.setOrientation(LinearLayout.HORIZONTAL);
+                LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+                dataRow.setLayoutParams(rowParams);
+
+                TextView nameTextView = new TextView(context);
+                nameTextView.setText(textTitleArray[i]);
+                nameTextView.setTextColor(Color.BLACK);
+                nameTextView.setTextSize(16);
+                nameTextView.setGravity(Gravity.START);
+                nameTextView.setPadding(8, 4, 8, 4);
+                nameTextView.setLayoutParams(new LinearLayout.LayoutParams(
+                        0,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        1f
+                ));
+
+                TextView countTextView = new TextView(context);
+                countTextView.setText(countTitleArray[i]);
+                countTextView.setTextColor(Color.BLACK);
+                countTextView.setTextSize(16);
+                countTextView.setGravity(Gravity.CENTER);
+                countTextView.setPadding(8, 4, 8, 4);
+                countTextView.setLayoutParams(new LinearLayout.LayoutParams(
+                        0,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        0.5f
+                ));
+
+                dataRow.addView(nameTextView);
+                dataRow.addView(countTextView);
+                container.addView(dataRow);
+            }
+
+            // Если строк больше 3, показываем индикатор
+            if (maxLength > 3) {
+                TextView moreIndicator = new TextView(context);
+                moreIndicator.setText("Eщe " + (maxLength - 3));
+                moreIndicator.setTextColor(Color.GRAY);
+                moreIndicator.setTextSize(12);
+                moreIndicator.setGravity(Gravity.CENTER);
+                moreIndicator.setPadding(8, 2, 8, 2);
+                moreIndicator.setLayoutParams(new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                ));
+                container.addView(moreIndicator);
+            }
+
+            // В конце метода - принудительно устанавливаем высоту
+            container.post(new Runnable() {
+                @Override
+                public void run() {
+                    // Измеряем содержимое
+                    container.measure(
+                            View.MeasureSpec.makeMeasureSpec(container.getWidth(), View.MeasureSpec.EXACTLY),
+                            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+                    );
+
+                    // Устанавливаем точную высоту
+                    LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) container.getLayoutParams();
+                    if (params != null) {
+                        params.height = container.getMeasuredHeight();
+                        container.setLayoutParams(params);
+                    }
+                }
+            });
+        }
+    }
     private int getRandomColor () { // Цвет заднего фона заметок
         List<Integer> colorCode = new ArrayList<>();
         colorCode.add(R.color.white);
@@ -98,7 +254,8 @@ public class NotesListAdapterMain extends RecyclerView.Adapter <NotesViewHolderM
 class NotesViewHolderMain extends RecyclerView.ViewHolder {
 
     CardView notes_container;
-    TextView textView_title, textView_notes, textView_date;
+    TextView textView_title, textView_date;
+    LinearLayout textView_notes;
     ImageView imageView_pin;
 
 
@@ -110,7 +267,6 @@ class NotesViewHolderMain extends RecyclerView.ViewHolder {
         textView_title = itemView.findViewById(R.id.textView_title);
         textView_notes = itemView.findViewById(R.id.textView_notes);
         textView_date = itemView.findViewById(R.id.textView_date);
-
 
         imageView_pin = itemView.findViewById(R.id.imageView_pin);
 

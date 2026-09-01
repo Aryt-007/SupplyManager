@@ -136,8 +136,6 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
         if (requestCode == 101) {
             if (resultCode == Activity.RESULT_OK) {
-                Notes new_notes = (Notes) data.getSerializableExtra("Запись");
-                database.mainDAO().insert(new_notes);
                 notes.clear();
                 notes.addAll(database.mainDAO().getAll());
                 notesListAdapterMain.notifyDataSetChanged();
@@ -145,9 +143,6 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             }
         } else if (requestCode == 102) {
             if (resultCode == Activity.RESULT_OK) {
-                Notes new_notes = (Notes) data.getSerializableExtra("Запись");
-                // ⚠️ Продолжайте с этим:
-                database.mainDAO().update(new_notes.getID(), new_notes.getTitle(), new_notes.getNotes(), new_notes.getText_title(), new_notes.getCount_title());
                 notes.clear();
                 notes.addAll(database.mainDAO().getAll());
                 notesListAdapterMain.notifyDataSetChanged();
