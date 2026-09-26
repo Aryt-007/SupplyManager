@@ -20,7 +20,7 @@
         tools:context=".MainActivity"
         android:background="@color/black">
 
-        <!-- Кнопка "Бургер" (теперь открывает Drawer) -->
+
         <ImageButton
             android:id="@+id/food_list"
             android:layout_width="50dp"

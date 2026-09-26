@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:background="@color/black">
+    >
     <ImageButton
         android:id="@+id/btn_delete"
         android:layout_width="0dp"
@@ -17,16 +17,15 @@
         android:src="@drawable/btn_delete" />
     <EditText
         android:id="@+id/text_title"
-        android:inputType="textCapSentences"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="5"
-        android:textColorHint="@color/white"
-        android:textStyle="normal"
-        android:textSize="18sp"
+        android:inputType="textCapSentences"
         android:gravity="center"
         android:padding="8dp"
-        android:textColor="@color/white" />
+        android:textColor="@color/white"
+        android:textColorHint="@color/white"
+        android:textSize="18sp" />
     <ImageButton
         android:id="@+id/btn_down"
         android:layout_width="0dp"

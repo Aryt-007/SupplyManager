@@ -2,23 +2,32 @@ package com.example.supplymanager;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.OverScroller;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.widget.NestedScrollView;
 
 import com.example.supplymanager.DataBase.RoomDB;
 import com.example.supplymanager.Models.Notes;
@@ -31,15 +40,17 @@ public class NotesTakerActivity extends AppCompatActivity {
 
     public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy.MM.dd");
     EditText editText_tittle;
-    ImageView imageView_save, imageView_cancellation;
+    ImageView imageView_save, imageView_cancellation, imageView_cancellation_taker, imageView_save_taker;
     ImageButton btn_add;
     Notes notes;
-    ScrollView scrollView;
+    RelativeLayout relative_layout_in_toolbar;
+    NestedScrollView scrollView;
     List<Notes> listNotes;
-    LinearLayout container;
+    LinearLayout container, activity_notes_taker_btn_add;
+    FrameLayout activity_notes_taker;
     LayoutInflater inflater;
     boolean isOldNote = false;
-    RoomDB database; // Добавьте поле для базы данных
+    RoomDB database;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -49,7 +60,9 @@ public class NotesTakerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_notes_taker);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.activity_notes_taker), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right,
+                    Math.max(systemBars.bottom, ime.bottom));
             return insets;
         });
 
@@ -62,8 +75,33 @@ public class NotesTakerActivity extends AppCompatActivity {
         inflater = LayoutInflater.from(this);
         listNotes = database.mainDAO().getAll();
         scrollView = findViewById(R.id.scrollView);
+        relative_layout_in_toolbar = findViewById(R.id.relative_layout_in_toolbar);
 
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        imageView_cancellation_taker = findViewById(R.id.imageView_cancellation_taker);
+        imageView_save_taker = findViewById(R.id.imageView_save_taker);
+
+        activity_notes_taker_btn_add = findViewById(R.id.activity_notes_taker_btn_add);
+        activity_notes_taker = findViewById(R.id.activity_notes_taker);
+
+        // Устанавливаем слушатель нажатий на корневой layout
+        activity_notes_taker.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearFocus();
+            }
+        });
+
+        // Также на другие элементы, кроме ScrollView
+        editText_tittle.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus) {
+                clearFocus();
+            }
+        });
+        relative_layout_in_toolbar.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus) {
+                clearFocus();
+            }
+        });
 
         // Проверяем, есть ли старая заметка
         notes = null;
@@ -90,7 +128,14 @@ public class NotesTakerActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 addNewRow();
-                scrollToBottom(); // Прокручиваем вниз
+                scrollToBottom();
+            }
+        });
+        btn_add.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                showAddRowsDialog();
+                return true;
             }
         });
 
@@ -178,22 +223,127 @@ public class NotesTakerActivity extends AppCompatActivity {
         });
     }
 
-    private void addNewRow() {
-        View row_item = inflater.inflate(R.layout.row_item, container, false);
+    private void showAddRowsDialog() {
+        // Создаем AlertDialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-        // Настраиваем кнопки для новой строки
-        setupRowButtons(row_item);
+        // Загружаем разметку
+        LayoutInflater dialogInflater = getLayoutInflater();
+        View dialogView = dialogInflater.inflate(R.layout.activity_notes_taker_btn_add, null);
 
-        container.addView(row_item, new LinearLayout.LayoutParams(
+        builder.setView(dialogView);
+        // Настройка внешнего вида
+        AlertDialog dialog = builder.create();
+
+        // Настройка внешнего вида диалога
+        if (dialog.getWindow() != null) {
+            // Прозрачный фон
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));
+
+            // Устанавливаем размеры из XML (200dp x 100dp)
+            float density = getResources().getDisplayMetrics().density;
+            int width = (int) (150 * density);
+            int height = (int) (100 * density);
+            dialog.getWindow().setLayout(width, height);
+        }
+
+        // Получаем элементы
+        imageView_cancellation_taker = dialogView.findViewById(R.id.imageView_cancellation_taker);
+        imageView_save_taker = dialogView.findViewById(R.id.imageView_save_taker);
+
+        // Настройка кнопки сохранения
+        imageView_save_taker.setOnClickListener(v -> {
+            EditText number_add = dialogView.findViewById(R.id.number_add);
+            String countText = number_add.getText().toString().trim();
+
+            if (countText.isEmpty()) {
+                Toast.makeText(this, "Введите количество", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            try {
+                int count = Integer.parseInt(countText);
+
+                if (count <= 0) {
+                    Toast.makeText(this, "Введите число больше 0", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Добавляем строки
+                for (int i = 0; i < count; i++) {
+                    addNewRow();
+                }
+                scrollToBottom();
+
+                dialog.dismiss();
+
+            } catch (NumberFormatException e) {
+                Toast.makeText(this, "Введите корректное число", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Настройка кнопки отмены
+        imageView_cancellation_taker.setOnClickListener(v -> {
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+
+
+    // Метод для снятия фокуса со всех полей
+    private void clearFocus() {
+        // Снимаем фокус с текущего активного поля
+        View currentFocus = getCurrentFocus();
+        if (currentFocus != null) {
+            currentFocus.clearFocus();
+        }
+
+        // Скрываем клавиатуру
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.hideSoftInputFromWindow(activity_notes_taker.getWindowToken(), 0);
+        }
+    }
+
+
+    public View addNewRow() {
+        View row = inflater.inflate(R.layout.row_item, container, false);
+        setupRowButtons(row);
+        container.addView(row, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        ));
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+        return row;
+    }
+
+    public void addNewRowAndFocus() {
+        View newRow = addNewRow();
+        EditText textTitle = newRow.findViewById(R.id.text_title);
+        if (textTitle == null) return;
+
+        // Ждём, пока строка реально попадёт в иерархию и будет измерена
+        newRow.post(() -> {
+            // 1) Фокус — на новой строке
+            textTitle.requestFocus();
+
+            // 2) Клавиатура
+            InputMethodManager imm =
+                    (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.showSoftInput(textTitle, InputMethodManager.SHOW_IMPLICIT);
+            }
+
+            // 3) Прокрутка к новой строке (с задержкой, чтобы IME успел появиться)
+//            newRow.postDelayed(this::scrollToView, 250, newRow);
+        });
     }
 
     private void loadExistingRows() {
         // Очищаем контейнер
         container.removeAllViews();
 
+        EditText text_title;
+        EditText count_title;
         String textTitles = notes.getText_title();
         String countTitles = notes.getCount_title();
 
@@ -206,8 +356,8 @@ public class NotesTakerActivity extends AppCompatActivity {
             for (int i = 0; i < maxLength; i++) {
                 View row_item = inflater.inflate(R.layout.row_item, container, false);
 
-                EditText text_title = row_item.findViewById(R.id.text_title);
-                EditText count_title = row_item.findViewById(R.id.count_title);
+                text_title = row_item.findViewById(R.id.text_title);
+                count_title = row_item.findViewById(R.id.count_title);
 
                 if (text_title != null && count_title != null) {
                     text_title.setText(textTitleArray[i]);
@@ -231,39 +381,28 @@ public class NotesTakerActivity extends AppCompatActivity {
 
     private void setupRowButtons(View row_item) {
         ImageButton btn_delete = row_item.findViewById(R.id.btn_delete);
-        if (btn_delete != null) {
-            btn_delete.setOnClickListener(v -> {
-                container.removeView(row_item);
-                if (container.getChildCount() == 0) {
-                    addNewRow();
-                }
-            });
-        }
-
         EditText count_title = row_item.findViewById(R.id.count_title);
         ImageButton btn_up = row_item.findViewById(R.id.btn_up);
         ImageButton btn_down = row_item.findViewById(R.id.btn_down);
+
+        if (btn_delete != null) {
+            btn_delete.setOnClickListener(v -> {
+                container.removeView(row_item);
+                if (container.getChildCount() == 0) addNewRow();
+            });
+        }
 
         if (btn_up != null && count_title != null) {
             btn_up.setOnClickListener(v -> {
                 String text = count_title.getText().toString().trim();
                 if (text.isEmpty()) text = "0";
                 try {
-                    // Проверяем, является ли число целым
                     if (text.contains(".")) {
-                        // Если есть десятичная часть
-                        float val = Float.parseFloat(text);
-                        float result = val + 1;
-                        // Если результат целый, показываем без ".0"
-                        if (result == Math.floor(result)) {
-                            count_title.setText(String.valueOf((int) result));
-                        } else {
-                            count_title.setText(String.valueOf(result));
-                        }
+                        float result = Float.parseFloat(text) + 1;
+                        count_title.setText(result == Math.floor(result)
+                                ? String.valueOf((int) result) : String.valueOf(result));
                     } else {
-                        // Если целое число
-                        int val = Integer.parseInt(text);
-                        count_title.setText(String.valueOf(val + 1));
+                        count_title.setText(String.valueOf(Integer.parseInt(text) + 1));
                     }
                 } catch (NumberFormatException e) {
                     count_title.setText("0");
@@ -277,16 +416,11 @@ public class NotesTakerActivity extends AppCompatActivity {
                 if (text.isEmpty()) text = "0";
                 try {
                     if (text.contains(".")) {
-                        float val = Float.parseFloat(text);
-                        float result = val - 1;
-                        if (result == Math.floor(result)) {
-                            count_title.setText(String.valueOf((int) result));
-                        } else {
-                            count_title.setText(String.valueOf(result));
-                        }
+                        float result = Float.parseFloat(text) - 1;
+                        count_title.setText(result == Math.floor(result)
+                                ? String.valueOf((int) result) : String.valueOf(result));
                     } else {
-                        int val = Integer.parseInt(text);
-                        count_title.setText(String.valueOf(val - 1));
+                        count_title.setText(String.valueOf(Integer.parseInt(text) - 1));
                     }
                 } catch (NumberFormatException e) {
                     count_title.setText("0");
@@ -295,13 +429,24 @@ public class NotesTakerActivity extends AppCompatActivity {
         }
     }
     private void scrollToBottom() {
-        if (scrollView != null) {
-            scrollView.post(new Runnable() {
-                @Override
-                public void run() {
-                    scrollView.fullScroll(View.FOCUS_DOWN);
+        scrollView.post(() -> {
+            View child = scrollView.getChildAt(0);
+            if (child == null) return;
+
+            // Прокрутка в самый низ
+            int target = child.getHeight() - scrollView.getHeight()
+                    + scrollView.getPaddingBottom();
+            scrollView.smoothScrollTo(0, Math.max(0, target));
+
+            // Фокус на поле "Название" последней добавленной строки
+            if (container.getChildCount() > 0) {
+                View lastRow = container.getChildAt(container.getChildCount() - 1);
+                EditText textTitle = lastRow.findViewById(R.id.text_title);
+                if (textTitle != null) {
+                    textTitle.requestFocus();
                 }
-            });
-        }
+            }
+        });
     }
+
 }
