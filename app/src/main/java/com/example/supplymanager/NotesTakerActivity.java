@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -16,9 +15,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.OverScroller;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -307,35 +304,12 @@ public class NotesTakerActivity extends AppCompatActivity {
     }
 
 
-    public View addNewRow() {
+    public void addNewRow() {
         View row = inflater.inflate(R.layout.row_item, container, false);
         setupRowButtons(row);
         container.addView(row, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT));
-        return row;
-    }
-
-    public void addNewRowAndFocus() {
-        View newRow = addNewRow();
-        EditText textTitle = newRow.findViewById(R.id.text_title);
-        if (textTitle == null) return;
-
-        // Ждём, пока строка реально попадёт в иерархию и будет измерена
-        newRow.post(() -> {
-            // 1) Фокус — на новой строке
-            textTitle.requestFocus();
-
-            // 2) Клавиатура
-            InputMethodManager imm =
-                    (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            if (imm != null) {
-                imm.showSoftInput(textTitle, InputMethodManager.SHOW_IMPLICIT);
-            }
-
-            // 3) Прокрутка к новой строке (с задержкой, чтобы IME успел появиться)
-//            newRow.postDelayed(this::scrollToView, 250, newRow);
-        });
     }
 
     private void loadExistingRows() {

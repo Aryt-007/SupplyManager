@@ -9,6 +9,7 @@ import android.view.ContextThemeWrapper;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.SearchView;
 
@@ -44,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     ImageButton food_list, settings;
     DrawerLayout main_menu;
     FoodMenuList foodMenuList;
+    LinearLayout selection_toolbar;
+
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -114,6 +117,34 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
         // Обновление списка
         updateRecycle(notes);
+    }
+
+    private void startSelectionMode(){
+
+        food_list = findViewById(R.id.food_list);
+        searchView_home = findViewById(R.id.searchView_home);
+        selection_toolbar = findViewById(R.id.selection_toolbar);
+
+        selection_toolbar.setVisibility(View.VISIBLE);
+
+        food_list.setVisibility(View.GONE);
+        searchView_home.setVisibility(View.GONE);
+        settings.setVisibility(View.GONE);
+
+    }
+
+    private void stopSelectionMode(){
+
+        food_list = findViewById(R.id.food_list);
+        searchView_home = findViewById(R.id.searchView_home);
+        selection_toolbar = findViewById(R.id.selection_toolbar);
+
+        selection_toolbar.setVisibility(View.GONE);
+
+        food_list.setVisibility(View.VISIBLE);
+        searchView_home.setVisibility(View.VISIBLE);
+        settings.setVisibility(View.VISIBLE);
+
     }
 
     // Поиск
