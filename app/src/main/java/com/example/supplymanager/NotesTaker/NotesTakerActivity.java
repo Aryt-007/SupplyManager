@@ -1,4 +1,4 @@
-package com.example.supplymanager;
+package com.example.supplymanager.NotesTaker;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -19,17 +19,21 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.core.widget.NestedScrollView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.supplymanager.DataBase.RoomDB;
 import com.example.supplymanager.Models.Notes;
+import com.example.supplymanager.R;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -41,13 +45,16 @@ public class NotesTakerActivity extends AppCompatActivity {
     ImageButton btn_add;
     Notes notes;
     RelativeLayout relative_layout_in_toolbar;
-    NestedScrollView scrollView;
+    RecyclerView scrollView;
     List<Notes> listNotes;
-    LinearLayout container, activity_notes_taker_btn_add;
+    LinearLayout activity_notes_taker_btn_add;
+    View rootView;
     FrameLayout activity_notes_taker;
-    LayoutInflater inflater;
     boolean isOldNote = false;
     RoomDB database;
+    private RecyclerView recyclerView;
+    private RowAdapter adapter;
+    private List<NoteRow> rowList = new ArrayList<>();
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -66,12 +73,9 @@ public class NotesTakerActivity extends AppCompatActivity {
         // Инициализация базы данных
         database = RoomDB.getInstance(this);
 
-        container = findViewById(R.id.rows_container);
         editText_tittle = findViewById(R.id.editText_tittle);
         btn_add = findViewById(R.id.btn_add);
-        inflater = LayoutInflater.from(this);
         listNotes = database.mainDAO().getAll();
-        scrollView = findViewById(R.id.scrollView);
         relative_layout_in_toolbar = findViewById(R.id.relative_layout_in_toolbar);
 
         imageView_cancellation_taker = findViewById(R.id.imageView_cancellation_taker);
@@ -79,6 +83,14 @@ public class NotesTakerActivity extends AppCompatActivity {
 
         activity_notes_taker_btn_add = findViewById(R.id.activity_notes_taker_btn_add);
         activity_notes_taker = findViewById(R.id.activity_notes_taker);
+        rootView = findViewById(android.R.id.content);
+
+        recyclerView = findViewById(R.id.scrollView); // Это ваш RecyclerView в XML
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        adapter = new RowAdapter(rowList);
+        recyclerView.setAdapter(adapter);
+
 
         // Устанавливаем слушатель нажатий на корневой layout
         activity_notes_taker.setOnClickListener(new View.OnClickListener() {
@@ -142,34 +154,22 @@ public class NotesTakerActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String title = editText_tittle.getText().toString();
 
-                // Собираем данные из всех строк таблицы
                 StringBuilder textTitles = new StringBuilder();
                 StringBuilder countTitles = new StringBuilder();
 
-                for (int i = 0; i < container.getChildCount(); i++) {
-                    View row = container.getChildAt(i);
+                // Берем данные прямо из нашего списка
+                for (NoteRow row : rowList) {
+                    String textTitleStr = row.getTitle().trim();
+                    String countTitleStr = row.getCount().trim();
 
-                    if (row != null) {
-                        EditText textTitle = row.findViewById(R.id.text_title);
-                        EditText countTitle = row.findViewById(R.id.count_title);
+                    if (textTitleStr.isEmpty() && countTitleStr.isEmpty()) continue;
 
-                        if (textTitle != null && countTitle != null) {
-                            String textTitleStr = textTitle.getText().toString().trim();
-                            String countTitleStr = countTitle.getText().toString().trim();
-
-                            // Пропускаем пустые строки
-                            if (textTitleStr.isEmpty() && countTitleStr.isEmpty()) {
-                                continue;
-                            }
-
-                            if (textTitles.length() > 0) {
-                                textTitles.append("|");
-                                countTitles.append("|");
-                            }
-                            textTitles.append(textTitleStr);
-                            countTitles.append(countTitleStr);
-                        }
+                    if (textTitles.length() > 0) {
+                        textTitles.append("|");
+                        countTitles.append("|");
                     }
+                    textTitles.append(textTitleStr);
+                    countTitles.append(countTitleStr);
                 }
 
                 Date date = new Date();
@@ -218,6 +218,35 @@ public class NotesTakerActivity extends AppCompatActivity {
                 finish();
             }
         });
+
+
+        ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, insets) -> {
+            boolean isKeyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime());
+
+            if (isKeyboardVisible) {
+                btn_add.setVisibility(View.GONE);
+            } else {
+                btn_add.setVisibility(View.VISIBLE);
+            }
+
+            return insets;
+        });
+
+        // Слушатель скролла для скрытия/показа кнопки btn_add
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                if (dy > 0 && btn_add.getVisibility() == View.VISIBLE) {
+                    // Пользователь скроллит вниз — прячем кнопку
+                    btn_add.setVisibility(View.GONE);
+                } else if (dy < 0 && btn_add.getVisibility() != View.VISIBLE) {
+                    // Пользователь скроллит вверх — показываем кнопку
+                    btn_add.setVisibility(View.VISIBLE);
+                }
+            }
+        });
     }
 
     private void showAddRowsDialog() {
@@ -229,19 +258,11 @@ public class NotesTakerActivity extends AppCompatActivity {
         View dialogView = dialogInflater.inflate(R.layout.activity_notes_taker_btn_add, null);
 
         builder.setView(dialogView);
-        // Настройка внешнего вида
         AlertDialog dialog = builder.create();
 
-        // Настройка внешнего вида диалога
+        // Прозрачный фон
         if (dialog.getWindow() != null) {
-            // Прозрачный фон
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));
-
-            // Устанавливаем размеры из XML (200dp x 100dp)
-            float density = getResources().getDisplayMetrics().density;
-            int width = (int) (150 * density);
-            int height = (int) (100 * density);
-            dialog.getWindow().setLayout(width, height);
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // лучше сделать прозрачным, а не белым, чтобы углы не конфликтовали
         }
 
         // Получаем элементы
@@ -266,7 +287,6 @@ public class NotesTakerActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Добавляем строки
                 for (int i = 0; i < count; i++) {
                     addNewRow();
                 }
@@ -284,9 +304,18 @@ public class NotesTakerActivity extends AppCompatActivity {
             dialog.dismiss();
         });
 
+        // 1. Сначала показываем диалог
         dialog.show();
-    }
 
+        // 2. И ТОЛЬКО ПОСЛЕ ЭТОГО жестко фиксируем размеры через Window!
+        if (dialog.getWindow() != null) {
+            float density = getResources().getDisplayMetrics().density;
+            int width = (int) (250 * density);
+            int height = (int) (100 * density);
+
+            dialog.getWindow().setLayout(width, height);
+        }
+    }
 
     // Метод для снятия фокуса со всех полей
     private void clearFocus() {
@@ -305,19 +334,17 @@ public class NotesTakerActivity extends AppCompatActivity {
 
 
     public void addNewRow() {
-        View row = inflater.inflate(R.layout.row_item, container, false);
-        setupRowButtons(row);
-        container.addView(row, new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT));
+        rowList.add(new NoteRow("", ""));
+        int newPosition = rowList.size() - 1;
+        adapter.notifyItemInserted(newPosition);
+
+        // Ставим фокус на новую строку
+        adapter.requestFocusOn(newPosition);
     }
 
     private void loadExistingRows() {
-        // Очищаем контейнер
-        container.removeAllViews();
+        rowList.clear(); // Очищаем список
 
-        EditText text_title;
-        EditText count_title;
         String textTitles = notes.getText_title();
         String countTitles = notes.getCount_title();
 
@@ -328,99 +355,21 @@ public class NotesTakerActivity extends AppCompatActivity {
             int maxLength = Math.min(textTitleArray.length, countTitleArray.length);
 
             for (int i = 0; i < maxLength; i++) {
-                View row_item = inflater.inflate(R.layout.row_item, container, false);
-
-                text_title = row_item.findViewById(R.id.text_title);
-                count_title = row_item.findViewById(R.id.count_title);
-
-                if (text_title != null && count_title != null) {
-                    text_title.setText(textTitleArray[i]);
-                    count_title.setText(countTitleArray[i]);
-                }
-
-                setupRowButtons(row_item);
-
-                container.addView(row_item, new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                ));
+                rowList.add(new NoteRow(textTitleArray[i], countTitleArray[i]));
             }
         }
 
-        // Если нет строк или все пустые, добавляем одну
-        if (container.getChildCount() == 0) {
-            addNewRow();
+        if (rowList.isEmpty()) {
+            rowList.add(new NoteRow("", ""));
         }
+
+        adapter.notifyDataSetChanged();
     }
 
-    private void setupRowButtons(View row_item) {
-        ImageButton btn_delete = row_item.findViewById(R.id.btn_delete);
-        EditText count_title = row_item.findViewById(R.id.count_title);
-        ImageButton btn_up = row_item.findViewById(R.id.btn_up);
-        ImageButton btn_down = row_item.findViewById(R.id.btn_down);
-
-        if (btn_delete != null) {
-            btn_delete.setOnClickListener(v -> {
-                container.removeView(row_item);
-                if (container.getChildCount() == 0) addNewRow();
-            });
-        }
-
-        if (btn_up != null && count_title != null) {
-            btn_up.setOnClickListener(v -> {
-                String text = count_title.getText().toString().trim();
-                if (text.isEmpty()) text = "0";
-                try {
-                    if (text.contains(".")) {
-                        float result = Float.parseFloat(text) + 1;
-                        count_title.setText(result == Math.floor(result)
-                                ? String.valueOf((int) result) : String.valueOf(result));
-                    } else {
-                        count_title.setText(String.valueOf(Integer.parseInt(text) + 1));
-                    }
-                } catch (NumberFormatException e) {
-                    count_title.setText("0");
-                }
-            });
-        }
-
-        if (btn_down != null && count_title != null) {
-            btn_down.setOnClickListener(v -> {
-                String text = count_title.getText().toString().trim();
-                if (text.isEmpty()) text = "0";
-                try {
-                    if (text.contains(".")) {
-                        float result = Float.parseFloat(text) - 1;
-                        count_title.setText(result == Math.floor(result)
-                                ? String.valueOf((int) result) : String.valueOf(result));
-                    } else {
-                        count_title.setText(String.valueOf(Integer.parseInt(text) - 1));
-                    }
-                } catch (NumberFormatException e) {
-                    count_title.setText("0");
-                }
-            });
-        }
-    }
     private void scrollToBottom() {
-        scrollView.post(() -> {
-            View child = scrollView.getChildAt(0);
-            if (child == null) return;
-
-            // Прокрутка в самый низ
-            int target = child.getHeight() - scrollView.getHeight()
-                    + scrollView.getPaddingBottom();
-            scrollView.smoothScrollTo(0, Math.max(0, target));
-
-            // Фокус на поле "Название" последней добавленной строки
-            if (container.getChildCount() > 0) {
-                View lastRow = container.getChildAt(container.getChildCount() - 1);
-                EditText textTitle = lastRow.findViewById(R.id.text_title);
-                if (textTitle != null) {
-                    textTitle.requestFocus();
-                }
-            }
-        });
+        if (rowList.size() > 0) {
+            recyclerView.smoothScrollToPosition(rowList.size() - 1);
+        }
     }
 
 }

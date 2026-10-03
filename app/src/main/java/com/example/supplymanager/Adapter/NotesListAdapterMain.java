@@ -1,6 +1,7 @@
 package com.example.supplymanager.Adapter;
 
 import android.annotation.SuppressLint;
+import android.app.Notification;
 import android.content.Context;
 import android.graphics.Color;
 import android.view.Gravity;
@@ -28,6 +29,8 @@ public class NotesListAdapterMain extends RecyclerView.Adapter <NotesViewHolderM
     Context context;
     List <Notes> list;
     NotesClickListener listener;
+    private boolean isSelectionMode = false;
+    private List<Notes> selectedNotes = new ArrayList<>();
 
     public NotesListAdapterMain(List<Notes> list, NotesClickListener listener, Context context) {
         this.list = list;
@@ -43,6 +46,7 @@ public class NotesListAdapterMain extends RecyclerView.Adapter <NotesViewHolderM
 
     @Override
     public void onBindViewHolder(@NonNull NotesViewHolderMain holder, int position) {
+        Notes notes = list.get(position);
         holder.textView_title.setText(list.get(position).getTitle());
         holder.textView_title.setSelected(true);
 
@@ -76,7 +80,20 @@ public class NotesListAdapterMain extends RecyclerView.Adapter <NotesViewHolderM
         holder.notes_container.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                listener.onClick(list.get(holder.getAdapterPosition()));
+                if (isSelectionMode) {
+                    // МГНОВЕННО меняем картинку прямо во View, без перерисовки адаптера!
+                    if (selectedNotes.contains(notes)) {
+                        selectedNotes.remove(notes); // Удаляем из списка
+                        holder.check_mark_on.setVisibility(View.GONE);
+                        holder.check_mark_off.setVisibility(View.VISIBLE);
+                    } else {
+                        selectedNotes.add(notes); // Добавляем в список
+                        holder.check_mark_on.setVisibility(View.VISIBLE);
+                        holder.check_mark_off.setVisibility(View.GONE);
+                    }
+                }
+                // Передаем сигнал в MainActivity (вдруг список стал пустым и надо выйти)
+                listener.onClick(notes);
             }
         });
 
@@ -84,9 +101,57 @@ public class NotesListAdapterMain extends RecyclerView.Adapter <NotesViewHolderM
             @Override
             public boolean onLongClick(View v) {
                 listener.onLongClick(list.get(holder.getAdapterPosition()), holder.notes_container);
-                return false;
+                return true;
             }
         });
+
+        // Логика отображения иконок в зависимости от режима
+        if (isSelectionMode) {
+            // Прячем иконку закрепления в режиме выделения
+            holder.imageView_pin.setVisibility(View.GONE);
+
+            // Если заметка есть в списке выделенных — ставим зеленую галочку (on)
+            if (selectedNotes.contains(notes)) {
+                holder.check_mark_on.setVisibility(View.VISIBLE);
+                holder.check_mark_off.setVisibility(View.GONE);
+            } else {
+                // Если нет — ставим пустой кружок (off)
+                holder.check_mark_on.setVisibility(View.GONE);
+                holder.check_mark_off.setVisibility(View.VISIBLE);
+            }
+        } else {
+            // Обычный режим
+            holder.check_mark_on.setVisibility(View.GONE);
+            holder.check_mark_off.setVisibility(View.GONE);
+
+            // Показываем пин только если заметка закреплена
+            if (notes.isPinned()) {
+                holder.imageView_pin.setVisibility(View.VISIBLE);
+            } else {
+                holder.imageView_pin.setVisibility(View.GONE);
+            }
+        }
+
+        if (isSelectionMode) {
+            holder.imageView_pin.setVisibility(View.GONE);
+
+            if (selectedNotes.contains(notes)) {
+                holder.check_mark_on.setVisibility(View.VISIBLE);
+                holder.check_mark_off.setVisibility(View.GONE);
+            } else {
+                holder.check_mark_on.setVisibility(View.GONE);
+                holder.check_mark_off.setVisibility(View.VISIBLE);
+            }
+        } else {
+            // Если выходим из режима выделения
+            holder.check_mark_on.setVisibility(View.GONE);
+            holder.check_mark_off.setVisibility(View.GONE);
+            if (notes.isPinned()) {
+                holder.imageView_pin.setVisibility(View.VISIBLE);
+            } else {
+                holder.imageView_pin.setVisibility(View.GONE);
+            }
+        }
     }
 
     // Метод для отображения данных таблицы
@@ -230,6 +295,25 @@ public class NotesListAdapterMain extends RecyclerView.Adapter <NotesViewHolderM
             });
         }
     }
+
+    public void updateSingleNoteSelection(List<Notes> selectedNotes, Notes toggledNote) {
+        this.selectedNotes = selectedNotes;
+        int position = list.indexOf(toggledNote);
+
+        if (position != -1) {
+            notifyItemChanged(position);
+        } else {
+            notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public long getItemId(int position) {
+        // У каждой заметки в базе данных есть свой уникальный ID.
+        // Мы говорим адаптеру использовать его, чтобы он не путал карточки.
+        return list.get(position).getID();
+    }
+
     private int getRandomColor () { // Цвет заднего фона заметок
         List<Integer> colorCode = new ArrayList<>();
         colorCode.add(R.color.white);
@@ -249,27 +333,69 @@ public class NotesListAdapterMain extends RecyclerView.Adapter <NotesViewHolderM
         list = filterAddList;
         notifyDataSetChanged();
     }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public void setSelectionMode(boolean isSelectionMode, List<Notes> selectedNotes, RecyclerView recyclerView) {
+        this.isSelectionMode = isSelectionMode;
+        this.selectedNotes = selectedNotes;
+
+        // ВАЖНО: Мы удалили notifyDataSetChanged()!
+        // Вместо этого мы вручную обновляем только те карточки, которые сейчас на экране.
+
+        for (int i = 0; i < recyclerView.getChildCount(); i++) {
+            View child = recyclerView.getChildAt(i);
+
+            // Замените NotesViewHolder на ваше название (например, NotesViewHolderMain), если оно отличается
+            NotesViewHolderMain holder = (NotesViewHolderMain) recyclerView.getChildViewHolder(child);
+
+            if (holder != null) {
+                int position = holder.getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION) {
+                    Notes note = list.get(position);
+
+                    if (isSelectionMode) {
+                        holder.imageView_pin.setVisibility(View.GONE);
+                        if (selectedNotes.contains(note)) {
+                            holder.check_mark_on.setVisibility(View.VISIBLE);
+                            holder.check_mark_off.setVisibility(View.GONE);
+                        } else {
+                            holder.check_mark_on.setVisibility(View.GONE);
+                            holder.check_mark_off.setVisibility(View.VISIBLE);
+                        }
+                    } else {
+                        // Если выходим из режима
+                        holder.check_mark_on.setVisibility(View.GONE);
+                        holder.check_mark_off.setVisibility(View.GONE);
+                        if (note.isPinned()) {
+                            holder.imageView_pin.setVisibility(View.VISIBLE);
+                        } else {
+                            holder.imageView_pin.setVisibility(View.GONE);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 class NotesViewHolderMain extends RecyclerView.ViewHolder {
 
+    // Ваши текущие переменные (возможно, они у вас уже есть)
     CardView notes_container;
     TextView textView_title, textView_date;
     LinearLayout textView_notes;
-    ImageView imageView_pin;
-
-
+    ImageView imageView_pin, check_mark_on, check_mark_off;
 
     public NotesViewHolderMain(@NonNull View itemView) {
         super(itemView);
-        notes_container = itemView.findViewById(R.id.menu_list_container);
 
+        notes_container = itemView.findViewById(R.id.menu_list_container); // Или как он у вас называется
         textView_title = itemView.findViewById(R.id.textView_title);
         textView_notes = itemView.findViewById(R.id.textView_notes);
         textView_date = itemView.findViewById(R.id.textView_date);
-
         imageView_pin = itemView.findViewById(R.id.imageView_pin);
 
-
+        check_mark_on = itemView.findViewById(R.id.check_mark_on);
+        check_mark_off = itemView.findViewById(R.id.check_mark_off);
     }
 }

@@ -1,7 +1,5 @@
 package com.example.supplymanager;
 
-import static androidx.core.content.ContextCompat.startActivity;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -22,6 +20,7 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import com.example.supplymanager.Adapter.MenuAdapter;
 import com.example.supplymanager.DataBase.RoomDB;
 import com.example.supplymanager.Models.Notes;
+import com.example.supplymanager.NotesTaker.NotesTakerActivity;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;

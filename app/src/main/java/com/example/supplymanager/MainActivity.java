@@ -11,9 +11,11 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.RelativeLayout;
 import android.widget.SearchView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -29,6 +31,7 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import com.example.supplymanager.Adapter.NotesListAdapterMain;
 import com.example.supplymanager.DataBase.RoomDB;
 import com.example.supplymanager.Models.Notes;
+import com.example.supplymanager.NotesTaker.NotesTakerActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,10 +45,13 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     List <Notes> notes = new ArrayList<>();
     SearchView searchView_home;
     Notes selectedNotes;
-    ImageButton food_list, settings;
+    ImageButton food_list, settings, cancel_button, pin_button, delete_button;
     DrawerLayout main_menu;
     FoodMenuList foodMenuList;
-    LinearLayout selection_toolbar;
+    RelativeLayout selection_toolbar, default_toolbar;
+    boolean isSelectionMode = false;
+    List<Notes> selectedNotesList = new ArrayList<>();
+
 
 
     @SuppressLint("MissingInflatedId")
@@ -66,12 +72,17 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         database = RoomDB.getInstance(this);
         notes = database.mainDAO().getAll();
 
+        selection_toolbar = findViewById(R.id.selection_toolbar);
+        default_toolbar = findViewById(R.id.default_toolbar);
+
         food_list = findViewById(R.id.food_list);
         settings = findViewById(R.id.settings);
-
-        main_menu = findViewById(R.id.main_menu);
+        cancel_button = findViewById(R.id.cancel_button);
+        pin_button = findViewById(R.id.pin_button);
+        delete_button = findViewById(R.id.delete_button);
 
         foodMenuList = new FoodMenuList(this);
+        main_menu = findViewById(R.id.main_menu);
 
         // Кнопка настроек
         settings.setOnClickListener(new View.OnClickListener() {
@@ -115,36 +126,90 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             }
         });
 
+        // Обработка отмены выделения
+        cancel_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stopSelectionMode();
+            }
+        });
+
+        pin_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!selectedNotesList.isEmpty()) {
+                    // Проходимся по всем выделенным заметкам
+                    for (Notes note : selectedNotesList) {
+                        boolean isPinned = note.isPinned();
+                        // Инвертируем состояние: если была закреплена - открепляем, и наоборот
+                        database.mainDAO().pin(note.getID(), !isPinned);
+                    }
+                    stopSelectionMode();
+                    refreshData();
+                    foodMenuList.refreshData();
+                }
+            }
+        });
+
+        delete_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!selectedNotesList.isEmpty()) {
+                    // Проходимся по всем выделенным заметкам и удаляем
+                    for (Notes note : selectedNotesList) {
+                        database.mainDAO().delete(note);
+                    }
+                    stopSelectionMode();
+                    refreshData();
+                    foodMenuList.refreshData();
+                }
+            }
+        });
+
+        // Слушатель скролла для скрытия/показа fab_add
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                // Если мы в режиме выделения - кнопка и так скрыта, ничего не делаем
+                if (isSelectionMode) return;
+
+                if (dy > 0 && fab_add.getVisibility() == View.VISIBLE) {
+                    // Пользователь скроллит вниз - прячем кнопку
+                    fab_add.setVisibility(View.GONE);
+                } else if (dy < 0 && fab_add.getVisibility() != View.VISIBLE) {
+                    // Пользователь скроллит вверх - показываем кнопку
+                    fab_add.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+
         // Обновление списка
         updateRecycle(notes);
     }
 
-    private void startSelectionMode(){
+    private void startSelectionMode(Notes firstNote) {
+        isSelectionMode = true;
+        selectedNotesList.clear();
+        selectedNotesList.add(firstNote);
+        notesListAdapterMain.setSelectionMode(true, selectedNotesList, recyclerView);
 
-        food_list = findViewById(R.id.food_list);
-        searchView_home = findViewById(R.id.searchView_home);
-        selection_toolbar = findViewById(R.id.selection_toolbar);
-
+        // Прячем обычный тулбар и кнопку добавления, показываем тулбар выделения
+        default_toolbar.setVisibility(View.GONE);
         selection_toolbar.setVisibility(View.VISIBLE);
-
-        food_list.setVisibility(View.GONE);
-        searchView_home.setVisibility(View.GONE);
-        settings.setVisibility(View.GONE);
-
+        fab_add.setVisibility(View.GONE);
     }
 
-    private void stopSelectionMode(){
+    private void stopSelectionMode() {
+        isSelectionMode = false;
+        selectedNotesList.clear();
+        notesListAdapterMain.setSelectionMode(false, selectedNotesList, recyclerView);
 
-        food_list = findViewById(R.id.food_list);
-        searchView_home = findViewById(R.id.searchView_home);
-        selection_toolbar = findViewById(R.id.selection_toolbar);
-
+        // Возвращаем всё обратно
         selection_toolbar.setVisibility(View.GONE);
-
-        food_list.setVisibility(View.VISIBLE);
-        searchView_home.setVisibility(View.VISIBLE);
-        settings.setVisibility(View.VISIBLE);
-
+        default_toolbar.setVisibility(View.VISIBLE);
+        fab_add.setVisibility(View.VISIBLE);
     }
 
     // Поиск
@@ -183,11 +248,23 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     }
 
     // Обновление заметок
-    private void updateRecycle(List<Notes> notes) { // В onCreate
+    private void updateRecycle(List<Notes> notes) {
         recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, LinearLayoutManager.VERTICAL));
+
+        StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(2, LinearLayoutManager.VERTICAL);
+        // 1. ЗАПРЕЩАЕМ СЕТКЕ ПЕРЕСЧИТЫВАТЬ ПОЗИЦИИ И ПРЫГАТЬ
+        layoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_NONE);
+        recyclerView.setLayoutManager(layoutManager);
+
         notesListAdapterMain = new NotesListAdapterMain(notes, notesClickListener, MainActivity.this);
+
+        // 2. Включаем поддержку стабильных ID, которые мы прописали в адаптере
+        notesListAdapterMain.setHasStableIds(true);
+
         recyclerView.setAdapter(notesListAdapterMain);
+
+        // 3. Отключаем анимацию (чтобы галочка появлялась мгновенно)
+        recyclerView.setItemAnimator(null);
     }
     public void refreshData() { // В остальных местах
         notes.clear();
@@ -198,17 +275,31 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     private final NotesClickListener notesClickListener = new NotesClickListener() {
         @Override
         public void onClick(Notes notes) {
-            Intent intent = new Intent(MainActivity.this, NotesTakerActivity.class);
-            intent.putExtra("Старая заметка", notes);
-            startActivityForResult(intent, 102);
+            if (isSelectionMode) {
+                // Если мы в режиме выделения, то клик ставит/снимает галочку
+                toggleSelection();
+            } else {
+                // Обычный режим - открываем заметку
+                Intent intent = new Intent(MainActivity.this, NotesTakerActivity.class);
+                intent.putExtra("Старая заметка", notes);
+                startActivityForResult(intent, 102);
+            }
         }
 
         @Override
         public void onLongClick(Notes notes, CardView cardView) {
-            selectedNotes = notes;
-            showPopupMenu(cardView, notes);
+            if (!isSelectionMode) {
+                // Включаем режим выделения и сразу выделяем ту карточку, на которую долго нажали
+                startSelectionMode(notes);
+            }
         }
     };
+
+    private void toggleSelection() {
+        if (selectedNotesList.isEmpty()) {
+            stopSelectionMode();
+        }
+    }
 
     // Закрепление
     @SuppressLint({"NonConstantResourceId", "NotifyDataSetChanged"})
@@ -239,24 +330,5 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         } else {
             return false;
         }
-    }
-
-    // Менюшка закрепить, открепить, удалить
-    void showPopupMenu(View view, Notes note) {
-        selectedNotes = note;
-
-        Context wrapper = new ContextThemeWrapper(this, R.style.CustomPopupTheme);
-        PopupMenu popupMenu = new PopupMenu(wrapper, view);
-        popupMenu.getMenuInflater().inflate(R.menu.popup_menu, popupMenu.getMenu());
-        MenuItem pinItem = popupMenu.getMenu().findItem(R.id.pin);
-
-        if (note.isPinned()) {
-            pinItem.setTitle("📌 Открепить");
-        } else {
-            pinItem.setTitle("📌 Закрепить");
-        }
-
-        popupMenu.setOnMenuItemClickListener(this);
-        popupMenu.show();
     }
 }

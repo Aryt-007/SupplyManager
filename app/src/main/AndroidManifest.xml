@@ -13,10 +13,11 @@
         android:theme="@style/Theme.SupplyManager"
         tools:targetApi="31">
         <activity
-            android:name=".NotesTakerActivity"
-            android:windowSoftInputMode="adjustResize"
+            android:name=".NotesTaker.NotesTakerActivity"
+            android:windowSoftInputMode="stateHidden"
             android:theme="@style/Base.Theme.SupplyManager.NoActionBar"
-            android:exported="false" />
+            android:exported="false"
+            />
         <activity
             android:name=".MainActivity"
             android:exported="true">
