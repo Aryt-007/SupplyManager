@@ -1,4 +1,4 @@
-package com.example.supplymanager;
+package com.example.supplymanager.Settings;
 
 
 import android.os.Bundle;
@@ -10,6 +10,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import com.example.supplymanager.R;
 
 public class MainSettings extends AppCompatActivity {
     ImageButton btn_back;

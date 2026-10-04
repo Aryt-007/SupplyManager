@@ -27,7 +27,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainSettings"
+            android:name=".Settings.MainSettings"
             android:exported="false" />
     </application>
 

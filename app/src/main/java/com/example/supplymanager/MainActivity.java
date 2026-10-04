@@ -2,14 +2,11 @@ package com.example.supplymanager;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.ContextThemeWrapper;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.SearchView;
@@ -32,6 +29,7 @@ import com.example.supplymanager.Adapter.NotesListAdapterMain;
 import com.example.supplymanager.DataBase.RoomDB;
 import com.example.supplymanager.Models.Notes;
 import com.example.supplymanager.NotesTaker.NotesTakerActivity;
+import com.example.supplymanager.Settings.MainSettings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,6 +105,9 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         fab_add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Убираем фокус с поиска перед открытием заметки
+                searchView_home.clearFocus();
+
                 Intent intent = new Intent(MainActivity.this, NotesTakerActivity.class);
                 startActivityForResult(intent, 101);
             }
@@ -217,7 +218,8 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         List<Notes> filteredList = new ArrayList<>();
         for (Notes singleNote : notes) {
             if (singleNote.getTitle().toLowerCase().contains(newText.toLowerCase()) // Переводит в поиске текст в маленькие буквы
-            || singleNote.getNotes().toLowerCase().contains(newText.toLowerCase())) {
+                    || singleNote.getText_title().toLowerCase().contains(newText.toLowerCase())
+                    || singleNote.getCount_title().toLowerCase().contains(newText.toLowerCase())) {
                 filteredList.add(singleNote);
             }
         }
@@ -279,6 +281,9 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 // Если мы в режиме выделения, то клик ставит/снимает галочку
                 toggleSelection();
             } else {
+                // Убираем фокус с поиска перед открытием заметки
+                searchView_home.clearFocus();
+
                 // Обычный режим - открываем заметку
                 Intent intent = new Intent(MainActivity.this, NotesTakerActivity.class);
                 intent.putExtra("Старая заметка", notes);
