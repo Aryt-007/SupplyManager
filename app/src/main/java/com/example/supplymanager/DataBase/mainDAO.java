@@ -18,6 +18,8 @@ public interface mainDAO {
 
     @Query("SELECT * FROM notes ORDER BY pinned DESC, date DESC")
     List<Notes> getAll();
+    @Query("SELECT * FROM notes ORDER BY pinned DESC, title ASC")
+    List<Notes> getFoodList();
 
     @Query("UPDATE notes SET title = :title, notes = :notes, text_title = :text_title, count_title = :count_title WHERE ID = :ID")
     void update(int ID, String title, String notes, String text_title, String count_title);
