@@ -274,7 +274,7 @@ public class NotesListAdapterMain extends RecyclerView.Adapter <NotesViewHolderM
         // Получаем текущую заметку из списка
         Notes notes = list.get(position);
         // Вставляем заголовок и активируем "бегущую строку", если текст не помещается
-        holder.textView_title.setSelected(false);
+        holder.textView_title.setSelected(true);
         holder.textView_title.setText(list.get(position).getTitle());
 
         // Вызываем метод, который мы разбирали ранее: он программно нарисует

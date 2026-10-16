@@ -203,7 +203,7 @@ public class NotesTakerActivity extends AppCompatActivity {
                     database.mainDAO().update(
                             notes.getID(),
                             notes.getTitle(),
-                            notes.getNotes(),
+                            notes.getDate(),
                             notes.getText_title(),
                             notes.getCount_title()
                     );

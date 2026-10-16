@@ -30,6 +30,7 @@ import com.example.supplymanager.DataBase.RoomDB;
 import com.example.supplymanager.Models.Notes;
 import com.example.supplymanager.NotesTaker.NotesTakerActivity;
 import com.example.supplymanager.Settings.MainSettings;
+import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,8 +49,6 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     RelativeLayout selection_toolbar, default_toolbar;
     RoomDB database;
     SearchView searchView_home;
-
-
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -255,6 +254,23 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
         // Обновление списка
         updateRecycle(notes);
+    }
+
+    /**
+     * Обрабатывает нажатие системной кнопки отмены назад
+     * при открытой шторке
+     */
+    @Override
+    public void onBackPressed() {
+        main_menu = findViewById(R.id.main_menu);
+        // Проверяем, выдвинута ли шторка слева (GravityCompat.START)
+        if (main_menu != null && main_menu.isDrawerOpen(GravityCompat.START)) {
+            // Плавно задвигаем её обратно
+            main_menu.closeDrawer(GravityCompat.START);
+        } else {
+            // Если шторка закрыта — закрываем приложение (или возвращаемся на предыдущий экран)
+            super.onBackPressed();
+        }
     }
 
     /**
