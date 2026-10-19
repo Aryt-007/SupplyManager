@@ -25,7 +25,7 @@
             android:id="@+id/recycler_header"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:layout_below="@+id/src_supply"
             android:layout_margin="10dp"
             android:clipToPadding="false"

@@ -12,6 +12,8 @@ import android.widget.RelativeLayout;
 import android.widget.SearchView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,8 +42,8 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     boolean isSelectionMode = false;
     DrawerLayout main_menu;
     FoodMenuList foodMenuList;
-    ImageButton food_list, settings, cancel_button, pin_button, delete_button, fab_add;
-    List <Notes> notes = new ArrayList<>();
+    ImageButton food_list, settings, cancel_button, pin_button, delete_button, fab_add, all_highlight;
+    public List <Notes> notes = new ArrayList<>();
     List<Notes> selectedNotesList = new ArrayList<>();
     Notes selectedNotes;
     NotesListAdapterMain notesListAdapterMain;
@@ -75,6 +77,8 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         selection_toolbar = findViewById(R.id.selection_toolbar);
         // Выход из меню
         cancel_button = findViewById(R.id.cancel_button);
+        // Выделить все
+        all_highlight = findViewById(R.id.all_highlight);
         // Закрепление заметки
         pin_button = findViewById(R.id.pin_button);
         // Удаление заметки
@@ -94,6 +98,29 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         database = RoomDB.getInstance(this);
         // Записи из базы данных
         notes = database.mainDAO().getAll();
+
+        // Кнопка вывода списка с тремя полосками
+        all_highlight.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 1. Убеждаемся, что режим выделения еще не включен, либо принудительно переводим в него
+                isSelectionMode = true;
+
+                // 2. Очищаем текущий список выбранных, чтобы избежать дубликатов
+                selectedNotesList.clear();
+
+                // 3. Добавляем абсолютно все заметки из основного списка (notes) в список выбранных
+                selectedNotesList.addAll(notes);
+
+                // 4. Передаем данные адаптеру, чтобы он нарисовал галочки на всех карточках
+                notesListAdapterMain.setSelectionMode(true, selectedNotesList, recyclerView);
+
+                // 5. Прячем обычный тулбар и кнопку "плюс", показываем панель управления выделением
+                default_toolbar.setVisibility(View.GONE);
+                selection_toolbar.setVisibility(View.VISIBLE);
+                fab_add.setVisibility(View.GONE);
+            }
+        });
 
         // Кнопка вывода списка с тремя полосками
         food_list.setOnClickListener(new View.OnClickListener() {
@@ -151,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 // "Откуда идем" (MainActivity.this) и "Куда идем" (MainSettings.class)
                 Intent intent_settings = new Intent(MainActivity.this, MainSettings.class);
                 // Даем команду Android запустить новую активность (открыть экран настроек)
-                startActivity(intent_settings);
+                settingsLauncher.launch(intent_settings);
             }
         });
 
@@ -255,6 +282,20 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         // Обновление списка
         updateRecycle(notes);
     }
+
+    private final ActivityResultLauncher<Intent> settingsLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                // Когда пользователь нажмет "Назад" в настройках и если был импорт (RESULT_OK)
+                if (result.getResultCode() == RESULT_OK) {
+                    // Достаем свежий список из базы данных
+                    List<Notes> updatedList = database.mainDAO().getAll();
+                    // Обновляем RecyclerView (вызовите ваш актуальный метод обновления)
+                    refreshData();
+                    foodMenuList.updateRecycle();
+                }
+            }
+    );
 
     /**
      * Обрабатывает нажатие системной кнопки отмены назад

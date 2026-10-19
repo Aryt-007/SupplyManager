@@ -101,6 +101,8 @@ public class FoodMenuList {
         // Подключаем наш адаптер боковой шторки (menuAdapter) к этому списку,
         // чтобы загруженные заметки появились на экране
         recyclerView.setAdapter(menuAdapter);
+        // Сразу подтягиваем свежие данные из базы
+        refreshData();
     }
 
     /**

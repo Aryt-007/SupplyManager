@@ -91,14 +91,14 @@
                     android:layout_centerVertical="true" />
 
                 <ImageButton
-                    android:id="@+id/delete_button"
+                    android:id="@+id/all_highlight"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
                     android:layout_margin="16dp"
-                    android:src="@drawable/btn_delete"
+                    android:src="@drawable/check_mark_on_white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="fitCenter"
-                    android:layout_alignParentEnd="true"
+                    android:layout_toStartOf="@id/pin_button"
                     android:layout_centerVertical="true" />
 
                 <ImageButton
@@ -111,6 +111,17 @@
                     android:scaleType="fitCenter"
                     android:layout_toStartOf="@id/delete_button"
                     android:layout_centerVertical="true" />
+
+                <ImageButton
+                    android:id="@+id/delete_button"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_margin="16dp"
+                    android:src="@drawable/btn_delete"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:scaleType="fitCenter"
+                    android:layout_alignParentEnd="true"
+ />
             </RelativeLayout>
         </FrameLayout>
 
