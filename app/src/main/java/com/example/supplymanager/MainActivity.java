@@ -483,7 +483,7 @@ public class MainActivity extends AppCompatActivity implements PopupMenu.OnMenuI
      * Именно здесь мы применили все те важные оптимизации, чтобы сетка карточек
      * работала плавно, не дергалась и не перестраивалась при долгом нажатии.
      */
-    private void updateRecycle(List<Notes> notes) {
+    public void updateRecycle(List<Notes> notes) {
         // Сообщаем Android, что размер самого списка (RecyclerView) не будет
         // постоянно меняться из-за добавления новых элементов. Это небольшая оптимизация производительности.
         recyclerView.setHasFixedSize(true);

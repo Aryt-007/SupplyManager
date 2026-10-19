@@ -27,7 +27,7 @@ public class NotesListAdapterMain extends RecyclerView.Adapter <NotesViewHolderM
 
     Context context;
     private boolean isSelectionMode = false;
-    List <Notes> list;
+    public List <Notes> list;
     NotesClickListener listener;
     private List<Notes> selectedNotes = new ArrayList<>();
 

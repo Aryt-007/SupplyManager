@@ -1,12 +1,19 @@
 package com.example.supplymanager.NotesTaker;
 
+import android.content.Context;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.text.method.KeyListener;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -87,20 +94,27 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.RowViewHolder> {
 
         // Устанавливаем данные
         holder.textTitle.setText(item.getTitle());
+        holder.textTitleMarquee.setText(item.getTitle());
         holder.countTitle.setText(item.getCount());
 
         // Устанавливаем фокус, если это новая строка
         if (position == focusPosition) {
-            holder.textTitle.requestFocus();
+            holder.showEditMode(true); // Включаем режим редактирования и клавиатуру
             focusPosition = -1; // Сбрасываем после установки
+        } else {
+            holder.showMarqueeMode(); // По умолчанию показываем режим бегущей строки
         }
 
         // Сохраняем введенный текст обратно в объект
         // Создаем новые слушатели. Как только пользователь напечатает хоть одну букву,
         // она тут же сохранится в объект NoteRow. Это гарантирует, что данные не потеряются при прокрутке.
+        // Слушатель для сохранения названия
         holder.titleWatcher = new CustomTextWatcher() {
             @Override
-            public void onTextChanged(String text) { item.setTitle(text); }
+            public void onTextChanged(String text) {
+                item.setTitle(text);
+                holder.textTitleMarquee.setText(text); // Синхронизируем текст с бегущей строкой
+            }
         };
         holder.textTitle.addTextChangedListener(holder.titleWatcher);
 
@@ -170,6 +184,7 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.RowViewHolder> {
      * и хранит ссылки на них, чтобы мы могли быстро менять текст и настраивать кнопки.
      */
     static class RowViewHolder extends RecyclerView.ViewHolder {
+        TextView textTitleMarquee; // Бегущая строка
         EditText textTitle, countTitle; // Поля для ввода названия и количества
         ImageButton btnUp, btnDown, btnDelete; // Кнопки +, - и корзина
         // Важно: мы храним ссылки на TextWatcher-ы здесь, чтобы в методе onBindViewHolder
@@ -178,11 +193,60 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.RowViewHolder> {
 
         public RowViewHolder(@NonNull View itemView) {
             super(itemView);
+            textTitleMarquee = itemView.findViewById(R.id.text_title_marquee);
             textTitle = itemView.findViewById(R.id.text_title);
             countTitle = itemView.findViewById(R.id.count_title);
             btnUp = itemView.findViewById(R.id.btn_up);
             btnDown = itemView.findViewById(R.id.btn_down);
             btnDelete = itemView.findViewById(R.id.btn_delete);
+
+            // 1. При нажатии на бегущую строку (TextView) открываем поле ввода (EditText)
+            textTitleMarquee.setOnClickListener(v -> showEditMode(true));
+
+            // 2. Когда фокус уходит с поля ввода — возвращаем бегущую строку
+            textTitle.setOnFocusChangeListener((v, hasFocus) -> {
+                if (!hasFocus) {
+                    showMarqueeMode();
+                }
+            });
+
+            // 3. При нажатии на галочку (Готово/Done) на клавиатуре — прячем клавиатуру и запускаем прокрутку
+            textTitle.setOnEditorActionListener((v, actionId, event) -> {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    textTitle.clearFocus();
+                    InputMethodManager imm = (InputMethodManager) v.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    if (imm != null) {
+                        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                    }
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        // Включает режим бегущей строки
+        void showMarqueeMode() {
+            textTitle.setVisibility(View.GONE);
+            textTitleMarquee.setVisibility(View.VISIBLE);
+            textTitleMarquee.setSelected(true); // Запускает анимацию прокрутки
+        }
+
+        // Включает режим редактирования текста
+        void showEditMode(boolean openKeyboard) {
+            textTitleMarquee.setSelected(false);
+            textTitleMarquee.setVisibility(View.GONE);
+            textTitle.setVisibility(View.VISIBLE);
+            textTitle.requestFocus();
+            textTitle.setSelection(textTitle.getText().length()); // Ставим курсор в конец текста
+
+            if (openKeyboard) {
+                textTitle.post(() -> {
+                    InputMethodManager imm = (InputMethodManager) textTitle.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    if (imm != null) {
+                        imm.showSoftInput(textTitle, InputMethodManager.SHOW_IMPLICIT);
+                    }
+                });
+            }
         }
     }
 

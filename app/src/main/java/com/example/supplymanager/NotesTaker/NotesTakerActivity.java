@@ -95,7 +95,6 @@ public class NotesTakerActivity extends AppCompatActivity {
         adapter = new RowAdapter(rowList);
         recyclerView.setAdapter(adapter);
 
-
         // Устанавливаем слушатель нажатий на корневой layout
         // Если пользователь кликает в любое пустое место на фоне или на верхней панели,
         // мы вызываем метод clearFocus(), который убирает курсор из полей ввода и прячет клавиатуру.
@@ -165,6 +164,9 @@ public class NotesTakerActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String title = editText_tittle.getText().toString(); // Берем заголовок
+
+                // Сортируем строки по алфавиту перед сохранением в базу данных!
+                sortRowsAlphabetically();
 
                 StringBuilder textTitles = new StringBuilder();
                 StringBuilder countTitles = new StringBuilder();
@@ -376,6 +378,9 @@ public class NotesTakerActivity extends AppCompatActivity {
         // одну пустую строчку, чтобы пользователю было куда начать печатать.
         if (rowList.isEmpty()) {
             rowList.add(new NoteRow("", ""));
+        } else {
+            // Сортируем загруженные из базы строки по алфавиту
+            sortRowsAlphabetically();
         }
 
         // Говорим адаптеру полностью перерисовать список с новыми восстановленными данными
@@ -396,6 +401,26 @@ public class NotesTakerActivity extends AppCompatActivity {
             // экран сам едет вниз, избавляя вас от необходимости скроллить пальцем.
             recyclerView.smoothScrollToPosition(rowList.size() - 1);
         }
+    }
+
+    /*
+     * Метод для сортировки строк по алфавиту (по названию title).
+     * Пустые строки (где пользователь еще ничего не написал) мы автоматически
+     * отправляем в самый низ списка, чтобы они не мешались на первом месте.
+     */
+    private void sortRowsAlphabetically() {
+        rowList.sort((row1, row2) -> {
+            String title1 = row1.getTitle() != null ? row1.getTitle().trim() : "";
+            String title2 = row2.getTitle() != null ? row2.getTitle().trim() : "";
+
+            // Если первая строка пустая, а вторая нет — отправляем первую вниз
+            if (title1.isEmpty() && !title2.isEmpty()) return 1;
+            // Наоборот
+            if (!title1.isEmpty() && title2.isEmpty()) return -1;
+
+            // Сравниваем строки по алфавиту (игнорируя регистр букв: А и а будут рядом)
+            return title1.compareToIgnoreCase(title2);
+        });
     }
 
     /**
